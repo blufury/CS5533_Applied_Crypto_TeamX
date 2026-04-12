@@ -13,18 +13,15 @@ def main() -> None:
     req1 = build_request(session_key, "job-001", "H q0; X q1")
     print(json.dumps(server.submit_job(req1), indent=2))
 
-    print("
-=== REPLAY SAME REQUEST ===")
+    print("=== REPLAY SAME REQUEST ===")
     print(json.dumps(server.submit_job(req1), indent=2))
 
-    print("
-=== TAMPERED PAYLOAD ===")
+    print("=== TAMPERED PAYLOAD ===")
     req2 = build_request(session_key, "job-002", "Z q0")
     req2["payload"] = req2["payload"][:-4] + "AAAA"
     print(json.dumps(server.submit_job(req2), indent=2))
 
-    print("
-=== UNSUPPORTED CIRCUIT ===")
+    print("=== UNSUPPORTED CIRCUIT ===")
     req3 = build_request(session_key, "job-003", "T q0", circuit_type="non_clifford")
     print(json.dumps(server.submit_job(req3), indent=2))
 
