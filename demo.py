@@ -1,29 +1,56 @@
 import json
+import time
+
 from src.client import build_request
-from src.config import derive_session_key, get_master_secret
+from src.config import get_session_key
 from src.server import QDelegateServer
 
 
-def main() -> None:
-    master_secret = get_master_secret()
-    session_key = derive_session_key(master_secret)
-    server = QDelegateServer(session_key)
+def pretty_print(title, response):
+    print(f"\n=== {title} ===")
+    print(json.dumps(response, indent=2))
 
-    print("=== VALID REQUEST ===")
-    req1 = build_request(session_key, "job-001", "H q0; X q1")
-    print(json.dumps(server.submit_job(req1), indent=2))
 
-    print("=== REPLAY SAME REQUEST ===")
-    print(json.dumps(server.submit_job(req1), indent=2))
+def main():
+    key = get_session_key()
+    server = QDelegateServer(key)
 
-    print("=== TAMPERED PAYLOAD ===")
-    req2 = build_request(session_key, "job-002", "Z q0")
-    req2["payload"] = req2["payload"][:-4] + "AAAA"
-    print(json.dumps(server.submit_job(req2), indent=2))
+    req1 = build_request(
+        session_key=key,
+        job_id="demo-job-001",
+        nonce="00112233445566778899aabb",
+        payload="H q0",
+        timestamp=int(time.time()),
+    )
+    res1 = server.submit_job(req1)
+    pretty_print("VALID REQUEST", res1)
 
-    print("=== UNSUPPORTED CIRCUIT ===")
-    req3 = build_request(session_key, "job-003", "T q0", circuit_type="non_clifford")
-    print(json.dumps(server.submit_job(req3), indent=2))
+    res2 = server.submit_job(req1)
+    pretty_print("REPLAYED REQUEST", res2)
+
+    req3 = build_request(
+        session_key=key,
+        job_id="demo-job-002",
+        nonce="abcdefabcdefabcdefabcdef",
+        payload="X q0",
+        timestamp=int(time.time()),
+    )
+    req3["ciphertext"] = "tampered" + req3["ciphertext"]
+    res3 = server.submit_job(req3)
+    pretty_print("TAMPERED REQUEST", res3)
+
+    req4 = build_request(
+        session_key=key,
+        job_id="demo-job-003",
+        nonce="999988887777666655554444",
+        payload="Z q0",
+        timestamp=int(time.time()),
+    )
+    req4["spec_version"] = "v0.4"
+    res4 = server.submit_job(req4)
+    pretty_print("WRONG VERSION", res4)
+
+    print("\nAudit log written to audit.log")
 
 
 if __name__ == "__main__":
