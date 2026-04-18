@@ -1,8 +1,7 @@
-import hashlib
 import logging
 from typing import Any, Dict, Set
 
-from src.crypto_utils import decrypt_payload
+from src.crypto_utils import decrypt_payload, sign_result
 
 
 logger = logging.getLogger("qdelegate.audit")
@@ -41,11 +40,12 @@ class QDelegateServer:
             "nonce",
             "timestamp",
             "circuit_type",
-            "ciphertext",
+            "payload",
+            "auth_tag",
         }
         return required.issubset(request.keys())
 
-    def _audit(self, event: str, request: Dict[str, Any], status: str, reason: str = ""):
+    def _audit(self, event: str, request: Dict[str, Any], status: str, reason: str = "") -> None:
         logger.info(
             "event=%s job_id=%s spec_version=%s nonce=%s status=%s reason=%s",
             event,
@@ -78,11 +78,22 @@ class QDelegateServer:
             self._audit("replay_detected", request, "error", "duplicate_nonce_or_job_id")
             return {"status": "error", "code": 409, "message": "Replay detected"}
 
+        aad = {
+            "spec_version": request["spec_version"],
+            "job_id": request["job_id"],
+            "client_id": request["client_id"],
+            "nonce": request["nonce"],
+            "timestamp": request["timestamp"],
+            "circuit_type": request["circuit_type"],
+        }
+
         try:
             plaintext = decrypt_payload(
-                session_key=self.session_key,
+                payload_b64=request["payload"],
+                auth_tag_b64=request["auth_tag"],
+                key=self.session_key,
                 nonce_hex=request["nonce"],
-                ciphertext_hex=request["ciphertext"],
+                aad=aad,
             )
         except Exception:
             self._audit("request_rejected", request, "error", "auth_failed_or_tampered")
@@ -92,7 +103,7 @@ class QDelegateServer:
         self.used_job_ids.add(job_id)
 
         result_payload = f"processed:{plaintext}"
-        signature = hashlib.sha256(result_payload.encode("utf-8")).hexdigest()
+        signature = sign_result(result_payload)
 
         response = {
             "status": "complete",
