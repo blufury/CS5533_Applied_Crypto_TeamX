@@ -34,7 +34,7 @@ pip install -r requirements.txt
 ## Run tests
 
 ```bash
-pytest
+python -m pytest
 ```
 
 ## Run demo
