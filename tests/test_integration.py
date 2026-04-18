@@ -60,7 +60,7 @@ def test_tampered_request_rejected_end_to_end():
         timestamp=int(time.time()),
     )
 
-    req["ciphertext"] = "tampered" + req["ciphertext"]
+    req["payload"] = "tampered" + req["payload"]
 
     res = server.submit_job(req)
 
