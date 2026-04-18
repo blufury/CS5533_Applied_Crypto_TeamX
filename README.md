@@ -48,3 +48,35 @@ python demo.py
 - No key material is hardcoded in source code
 - The demo uses an environment variable if present, otherwise it generates a fresh session key at runtime
 - AES-256-GCM is used for authenticated encryption
+
+- ## MVP demo steps
+
+1. Install dependencies:
+   `pip install -r requirements.txt`
+
+2. Run unit and integration tests:
+   `python -m pytest`
+
+3. Run the demo:
+   `python demo.py`
+
+## Environment assumptions
+
+- Python 3.10+
+- `cryptography` installed through `requirements.txt`
+- Session key is provided through environment variable if present, otherwise generated at runtime
+
+## Security logging
+
+The server writes basic audit events to:
+- console output
+- `audit.log`
+
+Logged events include:
+- request received
+- invalid format
+- unsupported version
+- unsupported circuit type
+- authentication failure
+- replay detection
+- accepted request / result returned
