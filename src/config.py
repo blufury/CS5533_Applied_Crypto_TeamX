@@ -1,7 +1,8 @@
 import base64
 import os
-from cryptography.hazmat.primitives.kdf.hkdf import HKDF
+
 from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
 
 def get_master_secret() -> bytes:
@@ -19,3 +20,8 @@ def derive_session_key(master_secret: bytes, context: bytes = b"qdelegate-sessio
         info=context,
     )
     return hkdf.derive(master_secret)
+
+
+def get_session_key() -> bytes:
+    master_secret = get_master_secret()
+    return derive_session_key(master_secret)
