@@ -6,12 +6,12 @@ from src.config import get_session_key
 from src.server import QDelegateServer
 
 
-def pretty_print(title, response):
+def pretty_print(title: str, response: dict) -> None:
     print(f"\n=== {title} ===")
     print(json.dumps(response, indent=2))
 
 
-def main():
+def main() -> None:
     key = get_session_key()
     server = QDelegateServer(key)
 
@@ -35,7 +35,7 @@ def main():
         payload="X q0",
         timestamp=int(time.time()),
     )
-    req3["ciphertext"] = "tampered" + req3["ciphertext"]
+    req3["payload"] = "tampered" + req3["payload"]
     res3 = server.submit_job(req3)
     pretty_print("TAMPERED REQUEST", res3)
 
