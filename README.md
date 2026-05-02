@@ -41,6 +41,8 @@ python -m pytest
 
 ```bash
 python demo.py
+python demo_quantum.py
+python -m attack.replay_attack_rerun_fixed
 ```
 
 ## Security notes
