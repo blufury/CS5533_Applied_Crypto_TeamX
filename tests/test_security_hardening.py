@@ -48,10 +48,12 @@ def test_invalid_nonce_rejected():
     req = build_request(
         session_key=key,
         job_id="bad-nonce-job",
-        nonce="not-a-valid-nonce",
+        nonce="1234567890abcdef12345678",
         payload="H q0",
         timestamp=int(time.time()),
     )
+
+    req["nonce"] = "not-a-valid-nonce"
 
     res = server.submit_job(req)
 
