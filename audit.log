@@ -188,3 +188,15 @@
 2026-05-02 12:59:04,693 | INFO | event=request_rejected job_id=job-1 spec_version=v0.5 nonce=794613c4ec212460a6b53e0b status=error reason=unsupported_circuit
 2026-05-02 12:59:04,695 | INFO | event=request_received job_id=job-1 spec_version=v0.5 nonce=a408e5394d4e2916e591461c status=started reason=
 2026-05-02 12:59:04,695 | INFO | event=request_rejected job_id=job-1 spec_version=v0.5 nonce=a408e5394d4e2916e591461c status=error reason=invalid_format
+2026-05-02 13:02:11,767 | INFO | event=request_received job_id=old-job spec_version=v0.5 nonce=1234567890abcdef12345678 status=started reason=
+2026-05-02 13:02:11,768 | INFO | event=request_rejected job_id=old-job spec_version=v0.5 nonce=1234567890abcdef12345678 status=error reason=stale_or_future_timestamp
+2026-05-02 13:02:11,770 | INFO | event=request_received job_id=future-job spec_version=v0.5 nonce=abcdefabcdefabcdefabcdef status=started reason=
+2026-05-02 13:02:11,770 | INFO | event=request_rejected job_id=future-job spec_version=v0.5 nonce=abcdefabcdefabcdefabcdef status=error reason=stale_or_future_timestamp
+2026-05-02 13:02:11,772 | INFO | event=request_received job_id=bad-nonce-job spec_version=v0.5 nonce=not-a-valid-nonce status=started reason=
+2026-05-02 13:02:11,773 | INFO | event=request_rejected job_id=bad-nonce-job spec_version=v0.5 nonce=not-a-valid-nonce status=error reason=invalid_nonce
+2026-05-02 13:02:11,775 | INFO | event=request_received job_id=large-payload-job spec_version=v0.5 nonce=555555555555555555555555 status=started reason=
+2026-05-02 13:02:11,775 | INFO | event=request_rejected job_id=large-payload-job spec_version=v0.5 nonce=555555555555555555555555 status=error reason=payload_too_large
+2026-05-02 13:02:11,777 | INFO | event=request_received job_id=regression-replay-job spec_version=v0.5 nonce=666666666666666666666666 status=started reason=
+2026-05-02 13:02:11,777 | INFO | event=request_accepted job_id=regression-replay-job spec_version=v0.5 nonce=666666666666666666666666 status=success reason=result_returned
+2026-05-02 13:02:11,777 | INFO | event=request_received job_id=regression-replay-job spec_version=v0.5 nonce=666666666666666666666666 status=started reason=
+2026-05-02 13:02:11,778 | INFO | event=replay_detected job_id=regression-replay-job spec_version=v0.5 nonce=666666666666666666666666 status=error reason=duplicate_nonce_or_job_id
