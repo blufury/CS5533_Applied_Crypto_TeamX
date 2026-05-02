@@ -143,4 +143,44 @@ Replay attacks are prevented using:
 Each message includes:
 
 ```text
+
+# Replay Mitigation
+
+The final design enforces replay protection using both nonce uniqueness and job_id uniqueness. The server stores previously seen values and rejects duplicates with code `409`.
+
+## Timestamp Freshness
+
+Requests include a timestamp. The server accepts only timestamps within a 60-second freshness window. Requests that are too old or too far in the future are rejected with code `400`.
+
+## Nonce Discipline
+
+The server validates that nonces are 96-bit values encoded as 24 hex characters. Invalid nonce values are rejected before decryption.
+
+## Validation Order
+
+The server validates requests in this order:
+
+1. required fields
+2. protocol version
+3. nonce format
+4. timestamp freshness
+5. payload size
+6. supported circuit type
+7. replay state
+8. AES-GCM decryption/authentication
+
+This prevents unnecessary cryptographic processing of malformed requests and ensures failures are logged with clear reasons.
+
+## Security Logging
+
+The server logs:
+
+- request received
+- request accepted
+- replay detected
+- invalid nonce
+- invalid timestamp
+- unsupported version
+- authentication failure
+- payload size failure
 spec_version = "v0.5"
