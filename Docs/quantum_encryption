@@ -1,0 +1,66 @@
+# Quantum Encryption Simulator Update
+
+## Purpose
+
+This update adds a simulated quantum encryption layer for the Q-Delegate package payload. The goal is to shift the protected circuit payload from normal AES-GCM encryption to a simulated quantum one-time-pad style encryption model.
+
+## What Is Being Encrypted
+
+The circuit payload is the computation request. For example:
+
+```text
+H q0
+```
+
+The payload is encrypted before being submitted to the server.
+
+## Simulated Quantum Encryption Design
+
+The implementation uses a simulated quantum one-time pad (QOTP):
+
+- X mask: flips encoded payload bits
+- Z mask: tracked to represent phase masking in a full quantum one-time pad
+- per-job pad: each job receives a fresh simulated pad
+- HMAC-SHA256: used to authenticate the encrypted payload
+
+## Important Limitation
+
+This is not real quantum hardware. It is a simulator that models the structure of quantum one-time-pad encryption for a classical payload. The project remains a protocol-level MVP.
+
+## Why Authentication Is Still Needed
+
+Quantum one-time-pad style encryption protects confidentiality, but it does not automatically authenticate messages. For that reason, the simulator also produces a `quantum_auth_tag` so tampered quantum ciphertext is rejected.
+
+## New Request Fields
+
+```json
+{
+  "quantum_ciphertext": "base64",
+  "quantum_auth_tag": "base64",
+  "key_context_id": "qotp-pad-job-id",
+  "encryption_mode": "simulated-qotp"
+}
+```
+
+## Demo
+
+Run:
+
+```bash
+python demo_quantum.py
+```
+
+Expected behavior:
+
+- valid simulated quantum encrypted request succeeds
+- replayed request fails
+- tampered quantum ciphertext fails
+- unsupported encryption mode fails
+
+## Tests
+
+Run:
+
+```bash
+python -m pytest tests/test_quantum_encryption.py
+```
