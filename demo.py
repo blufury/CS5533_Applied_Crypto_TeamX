@@ -22,11 +22,9 @@ def main() -> None:
         payload="H q0",
         timestamp=int(time.time()),
     )
-    res1 = server.submit_job(req1)
-    pretty_print("VALID REQUEST", res1)
+    pretty_print("VALID REQUEST", server.submit_job(req1))
 
-    res2 = server.submit_job(req1)
-    pretty_print("REPLAYED REQUEST", res2)
+    pretty_print("REPLAYED REQUEST", server.submit_job(req1))
 
     req3 = build_request(
         session_key=key,
@@ -36,8 +34,7 @@ def main() -> None:
         timestamp=int(time.time()),
     )
     req3["payload"] = "tampered" + req3["payload"]
-    res3 = server.submit_job(req3)
-    pretty_print("TAMPERED REQUEST", res3)
+    pretty_print("TAMPERED REQUEST", server.submit_job(req3))
 
     req4 = build_request(
         session_key=key,
@@ -47,8 +44,16 @@ def main() -> None:
         timestamp=int(time.time()),
     )
     req4["spec_version"] = "v0.4"
-    res4 = server.submit_job(req4)
-    pretty_print("WRONG VERSION", res4)
+    pretty_print("WRONG VERSION", server.submit_job(req4))
+
+    old_req = build_request(
+        session_key=key,
+        job_id="demo-job-004",
+        nonce="1234567890abcdef12345678",
+        payload="H q0",
+        timestamp=int(time.time()) - 1000,
+    )
+    pretty_print("STALE TIMESTAMP", server.submit_job(old_req))
 
     print("\nAudit log written to audit.log")
 
