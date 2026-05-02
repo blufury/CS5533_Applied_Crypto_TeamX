@@ -138,12 +138,6 @@ Replay attacks are prevented using:
 
 ---
 
-## 8. Versioning Strategy
-
-Each message includes:
-
-```text
-
 # Replay Mitigation
 
 The final design enforces replay protection using both nonce uniqueness and job_id uniqueness. The server stores previously seen values and rejects duplicates with code `409`.
