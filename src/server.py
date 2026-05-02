@@ -1,4 +1,5 @@
 import logging
+import time
 from typing import Any, Dict, Set
 
 from src.crypto_utils import decrypt_payload, sign_result
@@ -25,6 +26,9 @@ if not logger.handlers:
 
 
 class QDelegateServer:
+    MAX_PAYLOAD_B64_LENGTH = 4096
+    TIMESTAMP_WINDOW_SECONDS = 60
+
     def __init__(self, session_key: bytes):
         self.session_key = session_key
         self.used_nonces: Set[str] = set()
@@ -44,6 +48,26 @@ class QDelegateServer:
             "auth_tag",
         }
         return required.issubset(request.keys())
+
+    def _is_nonce_valid(self, nonce: Any) -> bool:
+        if not isinstance(nonce, str):
+            return False
+        if len(nonce) != 24:
+            return False
+        try:
+            bytes.fromhex(nonce)
+        except ValueError:
+            return False
+        return True
+
+    def _is_timestamp_valid(self, timestamp: Any) -> bool:
+        if not isinstance(timestamp, int):
+            return False
+        now = int(time.time())
+        return abs(now - timestamp) <= self.TIMESTAMP_WINDOW_SECONDS
+
+    def _is_payload_size_valid(self, payload: Any) -> bool:
+        return isinstance(payload, str) and len(payload) <= self.MAX_PAYLOAD_B64_LENGTH
 
     def _audit(self, event: str, request: Dict[str, Any], status: str, reason: str = "") -> None:
         logger.info(
@@ -66,6 +90,18 @@ class QDelegateServer:
         if request["spec_version"] != self.supported_version:
             self._audit("request_rejected", request, "error", "unsupported_version")
             return {"status": "error", "code": 400, "message": "Unsupported protocol version"}
+
+        if not self._is_nonce_valid(request["nonce"]):
+            self._audit("request_rejected", request, "error", "invalid_nonce")
+            return {"status": "error", "code": 400, "message": "Invalid nonce"}
+
+        if not self._is_timestamp_valid(request["timestamp"]):
+            self._audit("request_rejected", request, "error", "stale_or_future_timestamp")
+            return {"status": "error", "code": 400, "message": "Invalid timestamp"}
+
+        if not self._is_payload_size_valid(request["payload"]):
+            self._audit("request_rejected", request, "error", "payload_too_large")
+            return {"status": "error", "code": 400, "message": "Payload too large"}
 
         if request["circuit_type"] not in self.supported_circuit_types:
             self._audit("request_rejected", request, "error", "unsupported_circuit")
