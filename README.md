@@ -60,7 +60,10 @@ python -m attack.replay_attack_rerun_fixed
    `python -m pytest`
 
 3. Run the demo:
-   `python demo.py`
+   `python demo_quantum.py`
+
+4. Run the Replay Verification:
+   `python -m attack.replay_attack_rerun_fixed`
 
 ## Environment assumptions
 
